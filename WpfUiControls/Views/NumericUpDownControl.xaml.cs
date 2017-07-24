@@ -34,8 +34,13 @@ namespace WpfUiControls.Views
         private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             var command = viewModel.TextInputCommand;
+            var textBox = sender as TextBox;
+            var textBoxString = textBox.Text;
 
-            string text = ((TextBox)sender).Text + e.Text;
+            string text =
+                textBoxString.Substring(0, textBox.SelectionStart) +
+                e.Text +
+                textBoxString.Substring(textBox.SelectionStart + textBox.SelectionLength);
 
             if (command.CanExecute(text))
                 command.Execute(text);
@@ -43,9 +48,9 @@ namespace WpfUiControls.Views
                 e.Handled = true;
         }
 
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            viewModel.Text = ((TextBox)sender).Text;
+            viewModel.LostFocusCommand.Execute(null);
         }
     }
 }

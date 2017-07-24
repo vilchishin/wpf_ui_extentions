@@ -23,6 +23,7 @@ namespace WpfUiControls.ViewModels
         private ICommand textInputCommand;
         private ICommand upButtonClickCommand;
         private ICommand downButtonClickCommand;
+        private ICommand lostFocusCommand;
 
         #endregion
 
@@ -132,14 +133,33 @@ namespace WpfUiControls.ViewModels
             get { return text; }
             set
             {
-                float temp;
-                temp = float.Parse(value);  // Exception may be thrown.
+                if (value == String.Empty)
+                {
+                    Value = MinValue;
+                }
+                else if (value.Equals("-", StringComparison.OrdinalIgnoreCase))
+                {
+                    text = value;
+                    OnPropertyChanged("Text");
+                }
+                else
+                {
+                    float temp;
+                    temp = float.Parse(value);  // Exception may be thrown.
 
-                text = value;
-                this.value = temp;
+                    text = value;
 
-                OnPropertyChanged("Value");
-                OnPropertyChanged("Text");
+                    try
+                    {
+                        Value = temp;
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        Value = (temp < MinValue) ? MinValue : MaxValue;
+                    }
+
+                    OnPropertyChanged("Text");
+                }
             }
         }
 
@@ -173,6 +193,17 @@ namespace WpfUiControls.ViewModels
                     textInputCommand = new BaseCommand<string>(TextInputAction, CanExecuteTextInput);
 
                 return textInputCommand;
+            }
+        }
+
+        public ICommand LostFocusCommand
+        {
+            get
+            {
+                if (lostFocusCommand == null)
+                    lostFocusCommand = new BaseCommand(LostFocusAction);
+
+                return lostFocusCommand;
             }
         }
 
@@ -212,7 +243,14 @@ namespace WpfUiControls.ViewModels
         private bool CanExecuteTextInput(string e)
         {
             float dummy;
-            return float.TryParse(e, out dummy);
+
+            return e.Equals("-", StringComparison.OrdinalIgnoreCase) ||
+                float.TryParse(e, out dummy);
+        }
+
+        private void LostFocusAction()
+        {
+            Value = value;  // Re-set value to update text.
         }
 
         #endregion

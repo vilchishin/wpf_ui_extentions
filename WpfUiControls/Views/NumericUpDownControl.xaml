@@ -25,7 +25,7 @@
             Text="{Binding Text}"
             FontSize="{Binding FontSize}"
             PreviewTextInput="TextBox_PreviewTextInput"
-            TextChanged="TextBox_TextChanged"/>
+            LostFocus="TextBox_LostFocus"/>
         <Button
             Grid.Row="0"
             Grid.Column="1"
