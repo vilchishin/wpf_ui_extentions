@@ -166,3 +166,4 @@ pip-log.txt
 *.orig
 *.rej
 UpgradeLog.htm
+/TestingSolution
