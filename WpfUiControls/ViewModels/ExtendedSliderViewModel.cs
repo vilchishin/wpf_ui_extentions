@@ -41,6 +41,8 @@ namespace WpfUiControls.ViewModels
             LargeChange = 10;
 
             CalculateFuncs();
+
+            numericViewModel.ValueChanged += NumericValueChanged;
         }
 
         #endregion
@@ -140,6 +142,11 @@ namespace WpfUiControls.ViewModels
         private void CalculateToSlider()
         {
 
+        }
+
+        private void NumericValueChanged(object sender, float e)
+        {
+            // Recalculate Slider's value here.
         }
 
         #endregion

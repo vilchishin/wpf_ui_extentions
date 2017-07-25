@@ -27,6 +27,12 @@ namespace WpfUiControls.ViewModels
 
         #endregion
 
+        #region Events
+
+        public EventHandler<float> ValueChanged;
+
+        #endregion
+
         #region Constructors
 
         public NumericUpDownViewModel()
@@ -125,6 +131,8 @@ namespace WpfUiControls.ViewModels
 
                 OnPropertyChanged("Value");
                 OnPropertyChanged("Text");
+
+                RaiseOnValueChanged();
             }
         }
 
@@ -251,6 +259,12 @@ namespace WpfUiControls.ViewModels
         private void LostFocusAction()
         {
             Value = value;  // Re-set value to update text.
+        }
+
+        private void RaiseOnValueChanged()
+        {
+            if (ValueChanged != null)
+                ValueChanged(this, Value);
         }
 
         #endregion
