@@ -13,10 +13,11 @@ namespace WpfUiControls.ViewModels
 
         private int fontSize;
         private int decimalPlaces;
-        private float increment;
-        private float maxValue;
-        private float minValue;
-        private float value;
+        private int numberOfSteps;
+        private double increment;
+        private double maxValue;
+        private double minValue;
+        private double value;
         private string text;
 
         // Actions
@@ -29,7 +30,7 @@ namespace WpfUiControls.ViewModels
 
         #region Events
 
-        public EventHandler<float> ValueChanged;
+        public EventHandler<double> ValueChanged;
 
         #endregion
 
@@ -37,16 +38,21 @@ namespace WpfUiControls.ViewModels
 
         public NumericUpDownViewModel()
         {
-            decimalPlaces = 2;
-            increment = 10;
-            maxValue = 100;
-            minValue = 0;
+            DecimalPlaces = 2;
+            MaxValue = 100;
+            MinValue = 0;
+            NumberOfSteps = 10;
             Value = 50;
         }
 
         #endregion
 
         #region Properties
+
+        public bool IsReversed 
+        {
+            get { return increment < 0; } 
+        }
 
         /// <summary>
         /// Size of textboxe's font.
@@ -77,18 +83,32 @@ namespace WpfUiControls.ViewModels
 
                 decimalPlaces = value;
                 OnPropertyChanged("DecimalPlaces");
-                // Re-call value property to redraw decimal places.
-                Value = this.value;
+                StateChanged();
+            }
+        }
+
+        public int NumberOfSteps 
+        {
+            get { return numberOfSteps; }
+            set
+            {
+                if (value < 1)
+                    throw new ArgumentOutOfRangeException("NumberOfSteps", "NumberOfSteps can't be less than one.");
+
+                numberOfSteps = value;
+
+                Increment = Math.Round((MaxValue - MinValue) / numberOfSteps, decimalPlaces);
+                StateChanged();
             }
         }
 
         /// <summary>
         /// Number on which value in the textbox will change on button click.
         /// </summary>
-        public float Increment
+        public double Increment
         {
             get { return increment; }
-            set
+            private set
             {
                 if (value < DataTypeUtils.FZeroTolerance || value > maxValue)
                     throw new ArgumentOutOfRangeException("Increment", "Increment values should be in range 1e-6..MaxValue inclusively.");
@@ -98,27 +118,29 @@ namespace WpfUiControls.ViewModels
             }
         }
 
-        public float MaxValue
+        public double MaxValue
         {
             get { return maxValue; }
             set
             {
                 maxValue = value;
                 OnPropertyChanged("MaxValue");
+                StateChanged();
             }
         }
 
-        public float MinValue
+        public double MinValue
         {
             get { return minValue; }
             set
             {
                 minValue = value;
                 OnPropertyChanged("MinValue");
+                StateChanged();
             }
         }
 
-        public float Value
+        public double Value
         {
             get { return value; }
             set
@@ -217,7 +239,37 @@ namespace WpfUiControls.ViewModels
 
         #endregion
 
+        #region Public logic
+
+        public void SetValueWithoutRaisingEvent(double value)
+        {
+            if (value < minValue || value > maxValue)
+                throw new ArgumentOutOfRangeException("value", "value should be in ranges of MinValue and MaxValue");
+
+            this.value = value;
+            text = value.ToString(String.Format("F{0}", decimalPlaces));
+
+            OnPropertyChanged("Value");
+            OnPropertyChanged("Text");
+        }
+
+        #endregion
+
         #region Private logic
+
+        private void StateChanged()
+        {
+            Increment = Math.Round((MaxValue - MinValue) / NumberOfSteps, DecimalPlaces);
+
+            try
+            {
+                // Initiate value refresh.
+                Value = value;
+            } catch (ArgumentOutOfRangeException)
+            {
+                Value = (value > MaxValue) ? MaxValue : MinValue;
+            }
+        }
 
         private void UpButtonAction()
         {
@@ -250,10 +302,10 @@ namespace WpfUiControls.ViewModels
 
         private bool CanExecuteTextInput(string e)
         {
-            float dummy;
+            double dummy;
 
             return e.Equals("-", StringComparison.OrdinalIgnoreCase) ||
-                float.TryParse(e, out dummy);
+                double.TryParse(e, out dummy);
         }
 
         private void LostFocusAction()
