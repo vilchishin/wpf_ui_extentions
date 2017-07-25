@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:WpfUiControls.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="40" d:DesignWidth="300">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -17,11 +17,18 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock/>
-        <Slider Grid.Column="1" 
-                Grid.Row="1"
-                
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Center"/>
-        
+        <Slider 
+            Grid.Column="1" 
+            SmallChange="{Binding SmallChange}"
+            LargeChange="{Binding LargeChange}"
+            Maximum="{Binding MaxValue}"
+            Minimum="{Binding MinValue}"
+            Value="{Binding Value}"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Center"/>
+        <local:NumericUpDownControl
+            Grid.Column="2"
+            Width="{Binding NumericControlWidth}"
+            Margin="10, 3, 3, 3"/>
     </Grid>
 </UserControl>

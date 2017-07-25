@@ -64,13 +64,11 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Utils\DataTypeUtils.cs" />
+    <Compile Include="ViewModels\ExtendedSliderViewModel.cs" />
     <Compile Include="ViewModels\NumericUpDownViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="Views\ExtendedSliderControl.xaml.cs">
       <DependentUpon>ExtendedSliderControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\NumberBox.xaml.cs">
-      <DependentUpon>NumberBox.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\NumericUpDownControl.xaml.cs">
       <DependentUpon>NumericUpDownControl.xaml</DependentUpon>
@@ -86,10 +84,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Views\ExtendedSliderControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\NumberBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
