@@ -13,9 +13,9 @@ namespace WpfUiControls.ViewModels
 
         private int fontSize;
         private int decimalPlaces;
-        private int numberOfSteps;
+        private int numberOfSteps = 1;
         private double increment;
-        private double maxValue;
+        private double maxValue = 1;
         private double minValue;
         private double value;
         private string text;
@@ -36,22 +36,16 @@ namespace WpfUiControls.ViewModels
 
         #region Constructors
 
-        public NumericUpDownViewModel()
-        {
-            DecimalPlaces = 2;
-            MaxValue = 100;
-            MinValue = 0;
-            NumberOfSteps = 10;
-            Value = 50;
-        }
-
         #endregion
 
         #region Properties
 
-        public bool IsReversed 
+        /// <summary>
+        /// Indicates whether numeric control works in reversed mode.
+        /// </summary>
+        public bool IsReversed
         {
-            get { return increment < 0; } 
+            get { return increment < 0; }
         }
 
         /// <summary>
@@ -87,7 +81,11 @@ namespace WpfUiControls.ViewModels
             }
         }
 
-        public int NumberOfSteps 
+        /// <summary>
+        /// Number of times user has to click certain button to move from 
+        /// one side of the numeric range to the other one.
+        /// </summary>
+        public int NumberOfSteps
         {
             get { return numberOfSteps; }
             set
@@ -110,7 +108,7 @@ namespace WpfUiControls.ViewModels
             get { return increment; }
             private set
             {
-                if (value < DataTypeUtils.FZeroTolerance || value > maxValue)
+                if (Math.Abs(value) < DataTypeUtils.FZeroTolerance || Math.Abs(value) > Math.Abs(MaxValue - MinValue))
                     throw new ArgumentOutOfRangeException("Increment", "Increment values should be in range 1e-6..MaxValue inclusively.");
 
                 increment = value;
@@ -145,7 +143,8 @@ namespace WpfUiControls.ViewModels
             get { return value; }
             set
             {
-                if (value < minValue || value > maxValue)
+                if (!IsReversed && (value < MinValue || value > MaxValue) ||
+                    IsReversed && (value > MinValue || value < MaxValue))
                     throw new ArgumentOutOfRangeException("Value", "Value property should be in ranges of MinValue and MaxValue");
 
                 this.value = value;
@@ -243,7 +242,8 @@ namespace WpfUiControls.ViewModels
 
         public void SetValueWithoutRaisingEvent(double value)
         {
-            if (value < minValue || value > maxValue)
+            if (!IsReversed && (value < MinValue || value > MaxValue) ||
+                IsReversed && (value > MinValue || value < MaxValue))
                 throw new ArgumentOutOfRangeException("value", "value should be in ranges of MinValue and MaxValue");
 
             this.value = value;
@@ -265,7 +265,8 @@ namespace WpfUiControls.ViewModels
             {
                 // Initiate value refresh.
                 Value = value;
-            } catch (ArgumentOutOfRangeException)
+            }
+            catch (ArgumentOutOfRangeException)
             {
                 Value = (value > MaxValue) ? MaxValue : MinValue;
             }

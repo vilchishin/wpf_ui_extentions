@@ -19,7 +19,8 @@ namespace WpfUiControls.ViewModels
         private int smallChange;
         private int value;
 
-        private Func<float> toNumericCalculator;
+        private Func<double> multiplier;
+        private Func<double> toNumericCalculator;
         private Func<int> toSliderCalculator;
 
         #endregion
@@ -35,12 +36,8 @@ namespace WpfUiControls.ViewModels
 
             NumericControlWidth = 80;
 
-            MaxValue = 100;
-            MinValue = 0;
-            SmallChange = 1;
-            LargeChange = 10;
-
-            CalculateFuncs();
+            SetRange();
+            value = toSliderCalculator();
 
             numericViewModel.ValueChanged += NumericValueChanged;
         }
@@ -49,6 +46,25 @@ namespace WpfUiControls.ViewModels
 
         #region Properties
 
+        /// <summary>
+        /// View model of the numeric control that works as a base for the Slider control.
+        /// </summary>
+        public NumericUpDownViewModel NumericViewModel
+        {
+            get { return numericViewModel; }
+        }
+
+        /// <summary>
+        /// Indicates whether numeric control is reversed.
+        /// </summary>
+        public bool IsReversed 
+        {
+            get { return NumericViewModel.IsReversed; }
+        }
+
+        /// <summary>
+        /// Width of the numeric control.
+        /// </summary>
         public int NumericControlWidth
         {
             get { return numericControlWidth; }
@@ -62,33 +78,44 @@ namespace WpfUiControls.ViewModels
             }
         }
 
+        /// <summary>
+        /// Maximum value that Slider can get.
+        /// </summary>
         public int MaxValue
         {
             get { return maxValue; }
-            set
+            private set
             {
                 if (value < 1)
                     throw new ArgumentOutOfRangeException("MaxValue", "MaxValue can't be less than or equal to zero.");
 
                 maxValue = value;
                 OnPropertyChanged("MaxValue");
+                CalculateFuncs();
             }
         }
 
+        /// <summary>
+        /// Minimum possible value the Slider can get.
+        /// </summary>
         public int MinValue
         {
             get { return minValue; }
-            set
+            private set
             {
                 minValue = value;
                 OnPropertyChanged("MinValue");
+                CalculateFuncs();
             }
         }
 
+        /// <summary>
+        /// Number on which value changes when user clicks on the slider line.
+        /// </summary>
         public int LargeChange
         {
             get { return largeChange; }
-            set
+            private set
             {
                 if (value < smallChange)
                     throw new ArgumentOutOfRangeException("LargeChange", "LargeChange can't be less than SmallChange");
@@ -98,10 +125,13 @@ namespace WpfUiControls.ViewModels
             }
         }
 
+        /// <summary>
+        /// Number on which value changes when user pulls slider bar.
+        /// </summary>
         public int SmallChange
         {
             get { return smallChange; }
-            set
+            private set
             {
                 if (value < 1)
                     throw new ArgumentOutOfRangeException("SmallChange", "SmallChange can't be less than or equal to zero.");
@@ -111,16 +141,21 @@ namespace WpfUiControls.ViewModels
             }
         }
 
+        /// <summary>
+        /// Current value of the slider.
+        /// </summary>
         public int Value
         {
             get { return value; }
             set
             {
-                if (value < minValue || value > maxValue)
+                if (value < MinValue || value > MaxValue)
                     throw new ArgumentOutOfRangeException("Value", "Value must be between MinValue and MaxValue");
 
                 this.value = value;
                 OnPropertyChanged("Value");
+
+                numericViewModel.SetValueWithoutRaisingEvent(toNumericCalculator());
             }
         }
 
@@ -128,25 +163,66 @@ namespace WpfUiControls.ViewModels
 
         #region Private logic
 
+        /// <summary>
+        /// Sets ranges of the slider according to the Numeric View model.
+        /// </summary>
+        private void SetRange()
+        {
+            var numIncrement = NumericViewModel.Increment;
+            int iterations = 0;
+
+            while ((int)numIncrement == 0)
+            {
+                numIncrement *= 10;
+                iterations++;
+            }
+
+            int factor = (int)Math.Pow(10, iterations);
+
+            MaxValue = factor * 
+                (NumericViewModel.IsReversed ? (int)NumericViewModel.MinValue : (int)NumericViewModel.MaxValue);
+            MinValue = factor *
+                (NumericViewModel.IsReversed ? (int)NumericViewModel.MaxValue : (int)NumericViewModel.MinValue);
+            LargeChange = (int)Math.Abs(numIncrement);
+            SmallChange = 1;
+        }
+
+        /// <summary>
+        /// Calculates conversion functions to bind values of slider and numeric controls.
+        /// </summary>
         private void CalculateFuncs()
         {
+            CalculateMultiplier();
             CalculateToNumeric();
             CalculateToSlider();
         }
 
+        private void CalculateMultiplier()
+        {
+            multiplier = new Func<double>(() =>
+                Math.Round(((numericViewModel.MaxValue - numericViewModel.MinValue) / (MaxValue - MinValue)),
+                numericViewModel.DecimalPlaces, MidpointRounding.AwayFromZero)
+            );
+        }
+
         private void CalculateToNumeric()
         {
-
+            toNumericCalculator = new Func<double>(() => Value * multiplier());
         }
 
         private void CalculateToSlider()
         {
-
+            toSliderCalculator = new Func<int>(() => (int)Math.Round(numericViewModel.Value / multiplier(), 0));
         }
 
-        private void NumericValueChanged(object sender, float e)
+        /// <summary>
+        /// Callback that handles the event of the numeric value changing.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e">New value.</param>
+        private void NumericValueChanged(object sender, double e)
         {
-            // Recalculate Slider's value here.
+            Value = toSliderCalculator();
         }
 
         #endregion

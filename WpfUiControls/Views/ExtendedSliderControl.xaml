@@ -28,6 +28,7 @@
             VerticalAlignment="Center"/>
         <local:NumericUpDownControl
             Grid.Column="2"
+            DataContext="{Binding NumericViewModel}"
             Width="{Binding NumericControlWidth}"
             Margin="10, 3, 3, 3"/>
     </Grid>
